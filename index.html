@@ -3,29 +3,313 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>EVALUATIONS - PROJETS</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <title>EVALUATIONS — PROJETS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --gray-light: #f4f4f5;
+      --gray-mid: #d1d5db;
+      --text: #111111;
+      --text-soft: #555;
+
+      --c1: #1d4ed8;   /* bleu profond */
+      --c2: #dc2626;   /* rouge */
+      --c3: #16a34a;   /* vert */
+      --c4: #9333ea;   /* violet */
+      --c5: #ea580c;   /* orange */
+      --c6: #0891b2;   /* cyan */
+      --c7: #db2777;   /* rose */
+      --home: #374151; /* gris ardoise pour accueil */
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── HEADER BARRE ── */
+    header {
+      background: var(--text);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    header a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: .04em;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: background .2s, color .2s;
+    }
+
+    header a:hover {
+      background: rgba(255,255,255,.15);
+      color: #fff;
+    }
+
+    header a:first-child {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 64px 32px 40px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      color: var(--c1);
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-soft);
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      max-width: 860px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+    }
+
+    .divider hr {
+      border: none;
+      border-top: 2px solid var(--gray-mid);
+    }
+
+    /* ── GRID ── */
+    .grid {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    /* ── BOUTON CARTE ── */
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      padding: 28px 28px 24px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      background: var(--card-color, var(--c1));
+      color: #fff;
+      min-height: 140px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+      transition: transform .3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(0,0,0,.18);
+    }
+
+    .card:hover::before {
+      transform: scale(1.4);
+    }
+
+    .card-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .65;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.25;
+      flex: 1;
+    }
+
+    .card-arrow {
+      margin-top: 18px;
+      font-size: 1.4rem;
+      align-self: flex-end;
+      opacity: .8;
+      transition: transform .2s ease;
+    }
+
+    .card:hover .card-arrow {
+      transform: translate(4px, -4px);
+    }
+
+    /* Carte Accueil */
+    .card-home {
+      --card-color: var(--home);
+      grid-column: 1 / -1;
+      flex-direction: row;
+      align-items: center;
+      min-height: 80px;
+      padding: 20px 28px;
+      gap: 16px;
+    }
+
+    .card-home .card-title { font-size: 1.05rem; }
+    .card-home .card-arrow { margin-top: 0; }
+
+    /* Couleurs individuelles */
+    .c1 { --card-color: var(--c1); }
+    .c2 { --card-color: var(--c2); }
+    .c3 { --card-color: var(--c3); }
+    .c4 { --card-color: var(--c4); }
+    .c5 { --card-color: var(--c5); }
+    .c6 { --card-color: var(--c6); }
+    .c7 { --card-color: var(--c7); }
+
+    /* ── ANIMATION ENTRÉE ── */
+    .card {
+      opacity: 0;
+      animation: slideUp .45s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:nth-child(1)  { animation-delay: .04s; }
+    .card:nth-child(2)  { animation-delay: .10s; }
+    .card:nth-child(3)  { animation-delay: .16s; }
+    .card:nth-child(4)  { animation-delay: .22s; }
+    .card:nth-child(5)  { animation-delay: .28s; }
+    .card:nth-child(6)  { animation-delay: .34s; }
+    .card:nth-child(7)  { animation-delay: .40s; }
+    .card:nth-child(8)  { animation-delay: .46s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .hero { padding: 40px 20px 28px; }
+      .grid { padding: 0 20px; gap: 14px; }
+      .card { min-height: 120px; padding: 22px 22px 18px; }
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Barre de navigation discrète -->
   <header>
-      <a href="../index.html">Accueil</a>
-	  <a href="./evaluation_casier.html">projet 36 H _ casier</a>
-      <a href="./evaluation_pontdax.html">projet pont</a>
-      <a href="./evaluation_ascenseur.html">Projet Ascenseur privatif</a>
-      <a href="./evaluation_ferias.html">Projet maison Férias</a>
-      <a href="./evaluation_parking.html">Projet Parking du Lycée</a>
-	  <a href="./evaluation_cour.html">Projet cour du lycée</a>
-	  <a href="./evaluation_antiespion.html">Projet porte anti-espion</a>
+    <a href="./index.html">⌂ Accueil</a>
+    <a href="./evaluation_casier.html">Casiers de la cour</a>
+    <a href="./evaluation_pontdax.html">Pont de Dax</a>
+    <a href="./evaluation_ascenseur.html">Ascenseur privatif</a>
+    <a href="./evaluation_ferias.html">Maison Férias</a>
+    <a href="./evaluation_parking.html">Parking professeur</a>
+    <a href="./evaluation_cour.html">Cour du Lycée</a>
+    <a href="./evaluation_antiespion.html">Porte Anti-espion</a>
   </header>
- <h1>
-	  <a href="../index.html">Accueil</a>
-	  <a href="./evaluation_casier.html">projet 36 H _ casier</a>
-      <a href="./evaluation_pontdax.html">projet pont</a>
-      <a href="./evaluation_ascenseur.html">Projet Ascenseur privatif</a>
-      <a href="./evaluation_ferias.html">Projet maison Férias</a>
-      <a href="./evaluation_parking.html">Projet Parking du Lycée</a>
-	  <a href="./evaluation_cour.html">Projet cour du lycée</a>
-	  <a href="./evaluation_antiespion.html">Projet porte anti-espion</a>
-</h1>
+
+  <!-- Titre -->
+  <section class="hero">
+    <p class="hero-label">STI2D — Grilles d'évaluation</p>
+    <h1>Projets<br><span>Évaluations</span></h1>
+    <p class="hero-desc">Accédez aux grilles d'évaluation de chaque projet. Cliquez sur un projet pour ouvrir la grille correspondante.</p>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- Grille de boutons -->
+  <main class="grid">
+
+    <a href="../index.html" class="card card-home">
+      <span class="card-title">⌂ Retour à l'accueil</span>
+      <span class="card-arrow">→</span>
+    </a>
+	<a href="./evaluation_ferias.html" class="card 1">
+      <span class="card-number">Projet 01</span>
+      <span class="card-title">Maison<br>Férias</span>
+      <span class="card-arrow">↗</span>
+    </a>
+    <a href="./evaluation_parking.html" class="card c2">
+      <span class="card-number">Projet 02</span>
+      <span class="card-title">Parking<br>du Lycée</span>
+      <span class="card-arrow">↗</span>
+    </a>
+	<a href="./evaluation_antiespion.html" class="card c3">
+      <span class="card-number">Projet 03</span>
+      <span class="card-title">Porte<br>anti-espion</span>
+      <span class="card-arrow">↗</span>
+    </a>
+	<a href="./evaluation_ascenseur.html" class="card c4">
+      <span class="card-number">Projet 04</span>
+      <span class="card-title">Ascenseur<br>privatif</span>
+      <span class="card-arrow">↗</span>
+    </a>
+    <a href="./evaluation_pontdax.html" class="card c5">
+      <span class="card-number">Projet 05</span>
+      <span class="card-title">Pont<br>Pontdax</span>
+      <span class="card-arrow">↗</span>
+    </a>
+         <a href="./evaluation_cour.html" class="card c6">
+      <span class="card-number">Projet 06</span>
+      <span class="card-title">Cour<br>du Lycée</span>
+      <span class="card-arrow">↗</span>
+    </a>
+    
+	<a href="./evaluation_casier.html" class="card c7">
+      <span class="card-number">Projet final</span>
+      <span class="card-title">Casier<br>36 heures</span>
+      <span class="card-arrow">↗</span>
+    </a>
+  </main>
+
 </body>
 </html>
