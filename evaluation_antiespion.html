@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Évaluation du rapport écrit</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 20px;
+    color: #1a1a2e;
+  }
+
+  .page-wrapper {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .action-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-pdf {
+    background: #c0392b;
+    color: white;
+    flex: 1;
+    justify-content: center;
+  }
+  .btn-pdf:hover { background: #a93226; transform: translateY(-1px); }
+  .btn-reset {
+    background: #555;
+    color: white;
+  }
+  .btn-reset:hover { background: #333; }
+
+  /* ===== GRILLE ===== */
+  .grille {
+    background: white;
+    border: 2px solid #222;
+    font-size: 13px;
+  }
+
+  /* En-tête titre */
+  .header-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-bottom: 2px solid #222;
+  }
+  .header-title {
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 2px solid #222;
+  }
+  .header-nom-matiere {
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Ligne élève */
+  .eleve-row {
+    border-bottom: 2px solid #222;
+    padding: 8px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .eleve-row label { font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .eleve-row input, .eleve-row select {
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    background: #fafafa;
+  }
+  .eleve-row input[type="text"] { width: 130px; }
+  .eleve-row input[type="date"] { width: 145px; }
+  .eleve-row select.classe-select { width: 120px; }
+
+  /* Colonnes header */
+  .cols-header {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    border-bottom: 2px solid #222;
+    background: #f7f7f7;
+  }
+  .col-h {
+    padding: 10px 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    border-right: 1px solid #aaa;
+  }
+  .col-h:first-child { text-align: left; font-size: 15px; }
+  .col-h:last-child { border-right: none; }
+
+  /* Catégorie */
+  .categorie {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #bbb;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .categorie-label {
+    padding: 5px 10px;
+    text-decoration: underline;
+    border-right: 1px solid #bbb;
+    grid-column: 1 / -1;
+  }
+
+  /* Ligne critère */
+  .critere {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    border-bottom: 1px solid #ddd;
+    min-height: 40px;
+    align-items: stretch;
+  }
+  .critere:last-child { border-bottom: 1px solid #bbb; }
+
+  .critere-label {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #ccc;
+    line-height: 1.35;
+  }
+
+  .note-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 6px;
+    border-right: 1px solid #ccc;
+    background: #ffe0e0;
+  }
+  .note-cell select {
+    width: 100%;
+    padding: 4px 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    text-align: center;
+    cursor: pointer;
+  }
+  .note-cell select.ne { background: #e8e8e8; color: #666; }
+
+  .coef-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+  .coef-cell input {
+    width: 46px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Ligne note finale */
+  .note-finale-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    border-top: 3px solid #222;
+    min-height: 56px;
+    background: #fff;
+  }
+  .note-finale-label {
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #aaa;
+  }
+  .note-finale-val {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    border-right: 1px solid #aaa;
+  }
+  .note-finale-max {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 6px 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .note-finale-max span {
+    font-size: 22px;
+    font-weight: 700;
+    z-index: 1;
+  }
+  .slash {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom right, transparent calc(50% - 1px), #222 calc(50% - 1px), #222 calc(50% + 1px), transparent calc(50% + 1px));
+  }
+
+  /* ===== PRINT / PDF ===== */
+  @media print {
+    body { background: white; padding: 0; }
+    .action-bar { display: none; }
+    .page-wrapper { max-width: 100%; }
+    .grille { border: 2px solid #222; font-size: 11px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    body { padding: 8px; }
+    .cols-header, .critere, .categorie, .note-finale-row {
+      grid-template-columns: 1fr 75px 72px;
+    }
+    .header-row { grid-template-columns: 1fr 90px; }
+    .col-h:first-child { font-size: 13px; }
+    .eleve-row input[type="text"] { width: 100px; }
+    .eleve-row input[type="date"] { width: 130px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+  <div class="action-bar">
+    <button class="btn btn-reset" onclick="resetNotes()">↺ Réinitialiser</button>
+    <button class="btn btn-pdf" onclick="exportPDF()">⬇ Enregistrer en PDF</button>
+  </div>
+
+  <div class="grille" id="grille">
+
+    <!-- En-tête -->
+    <div class="header-row">
+      <div class="header-title">EVALUATION du rapport écrit</div>
+      <div class="header-nom-matiere"><input type="text" id="matiere-eval" value="" placeholder="MATIÈRE" style="border:none;background:transparent;font-weight:700;font-size:15px;width:120px;text-align:center;outline:none;"></div>
+    </div>
+
+    <!-- Ligne élève -->
+    <div class="eleve-row">
+      <label>Date :</label>
+      <input type="date" id="date-eval">
+      <label>Nom :</label>
+      <input type="text" id="nom-eleve" placeholder="NOM">
+      <label>Prénom :</label>
+      <input type="text" id="prenom-eleve" placeholder="Prénom">
+      <label>Classe :</label>
+      <select class="classe-select" id="classe-eleve">
+        <option value="1STI2D" selected>1STI2D</option>
+        <option value="1STI2D-G1">1STI2D-G1</option>
+        <option value="1STI2D-G2">1STI2D-G2</option>
+        <option value="TSTI2D">TSTI2D</option>
+        <option value="1SI">1SI</option>
+        <option value="TSI">TSI</option>
+      </select>
+    </div>
+
+    <!-- En-têtes colonnes -->
+    <div class="cols-header">
+      <div class="col-h">Compétences évaluées</div>
+      <div class="col-h">sur 4</div>
+      <div class="col-h">coef.</div>
+    </div>
+
+    <!-- === Catégorie 1 === -->
+    <div class="categorie">
+      <div class="categorie-label">Analyse du besoin</div>
+    </div>
+
+    <div class="critere">
+      <div class="critere-label">Analyser le contexte et Analyser les cas d'utilisation</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="1" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Formuler la problématique</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Analyser le cahier des charges et apporter les modifications</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">S'organiser en équipe.</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="0" min="0" max="99" onchange="calcul()"></div>
+    </div>
+
+    <!-- === Catégorie 2 === -->
+    <div class="categorie">
+      <div class="categorie-label">RECHERCHE de SOLUTIONS</div>
+    </div>
+
+    <div class="critere">
+      <div class="critere-label">Rechercher des innovations existantes</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Rechercher des solutions innovantes</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="3" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Etablir une matrice de choix – choisir une solution</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+
+    <!-- === Catégorie 3 === -->
+    <div class="categorie">
+      <div class="categorie-label">CONCEVOIR UNE SOLUTION - dimensionner - MODELISER</div>
+    </div>
+
+    <div class="critere">
+      <div class="critere-label">Dessiner le schéma de câblage</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Fournir LE PROGRAMME BLOC</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="4" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Modéliser et simuler l'éclairage +courbe isophotes</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="4" min="0" max="99" onchange="calcul()"></div>
+    </div>
+
+    <!-- === Catégorie 4 === -->
+    <div class="categorie">
+      <div class="categorie-label">EXPERIMENTER</div>
+    </div>
+
+    <div class="critere">
+      <div class="critere-label">Cabler, programmer et mettre au point la maquette ou le prototype</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Analyser les résultats et valider les exigences du cahier des charges pour chaque solution</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="3" min="0" max="99" onchange="calcul()"></div>
+    </div>
+
+    <!-- === Catégorie 5 === -->
+    <div class="categorie">
+      <div class="categorie-label">Communication écrite</div>
+    </div>
+
+    <div class="critere">
+      <div class="critere-label">diapos commentées, documentées, claires</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Compte-rendu structuré respectant un plan</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+    <div class="critere">
+      <div class="critere-label">Expression écrite (niveau de langue et orthographe)</div>
+      <div class="note-cell"><select class="note-select" onchange="updateNote(this); calcul()"></select></div>
+      <div class="coef-cell"><input type="number" class="coef-input" value="2" min="0" max="99" onchange="calcul()"></div>
+    </div>
+
+    <!-- Note finale -->
+    <div class="note-finale-row">
+      <div class="note-finale-label">Note obtenue</div>
+      <div class="note-finale-val" id="note-affichee">—</div>
+      <div class="note-finale-max">
+        <div class="slash"></div>
+        <span>20</span>
+      </div>
+    </div>
+
+  </div><!-- fin grille -->
+</div><!-- fin page-wrapper -->
+
+<script>
+// ===== Initialisation des selects =====
+const noteOptions = ['NE', '0', '1', '2', '3', '4'];
+
+function initSelects() {
+  document.querySelectorAll('.note-select').forEach(sel => {
+    sel.innerHTML = '';
+    noteOptions.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+    sel.value = '2';
+    updateNote(sel);
+  });
+}
+
+function updateNote(sel) {
+  const cell = sel.closest('.note-cell');
+  if (sel.value === 'NE') {
+    sel.classList.add('ne');
+    cell.style.background = '#e8e8e8';
+  } else {
+    sel.classList.remove('ne');
+    cell.style.background = '#ffe0e0';
+  }
+}
+
+// ===== Calcul note =====
+function calcul() {
+  const rows = document.querySelectorAll('.critere');
+  let totalPoints = 0;
+  let totalCoef = 0;
+
+  rows.forEach(row => {
+    const sel = row.querySelector('.note-select');
+    const coefInput = row.querySelector('.coef-input');
+    if (!sel || !coefInput) return;
+    const note = sel.value;
+    const coef = parseFloat(coefInput.value) || 0;
+    if (note === 'NE') return;
+    totalPoints += parseFloat(note) * coef;
+    totalCoef += coef;
+  });
+
+  const affichage = document.getElementById('note-affichee');
+  if (totalCoef === 0) {
+    affichage.textContent = '—';
+    return;
+  }
+  const noteSur20 = (totalPoints / totalCoef) * (20 / 4);
+  affichage.textContent = Math.round(noteSur20 * 10) / 10;
+}
+
+// ===== Reset =====
+function resetNotes() {
+  document.querySelectorAll('.note-select').forEach(sel => {
+    sel.value = '2';
+    updateNote(sel);
+  });
+  setDefaultDate();
+  calcul();
+}
+
+// ===== Date par défaut =====
+function setDefaultDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('date-eval').value = `${yyyy}-${mm}-${dd}`;
+}
+
+// ===== Export PDF =====
+async function exportPDF() {
+  const btn = document.querySelector('.btn-pdf');
+  btn.disabled = true;
+  btn.textContent = '⏳ Génération...';
+
+  // Masquer la barre d'action pendant la capture
+  const actionBar = document.querySelector('.action-bar');
+  actionBar.style.display = 'none';
+
+  try {
+    const grille = document.getElementById('grille');
+    const canvas = await html2canvas(grille, {
+      scale: 2.5,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pageW = 210;
+    const pageH = 297;
+    const margin = 12;
+    const maxW = pageW - margin * 2;
+    const maxH = pageH - margin * 2;
+
+    const imgW = canvas.width;
+    const imgH = canvas.height;
+    const ratio = imgH / imgW;
+
+    let finalW = maxW;
+    let finalH = maxW * ratio;
+    if (finalH > maxH) {
+      finalH = maxH;
+      finalW = maxH / ratio;
+    }
+
+    const offsetX = margin + (maxW - finalW) / 2;
+    const offsetY = margin + (maxH - finalH) / 2;
+
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', offsetX, offsetY, finalW, finalH);
+
+    // Nom du fichier
+    const nom = document.getElementById('nom-eleve').value || 'eleve';
+    const prenom = document.getElementById('prenom-eleve').value || '';
+    const date = document.getElementById('date-eval').value || '';
+    const matiere = document.getElementById('matiere-eval').value || '';
+    const filename = `evaluation_${matiere}_${nom}_${prenom}_${date}.pdf`.replace(/\s+/g, '_');
+
+    pdf.save(filename);
+  } finally {
+    actionBar.style.display = '';
+    btn.disabled = false;
+    btn.textContent = '⬇ Enregistrer en PDF';
+  }
+}
+
+// ===== Init =====
+setDefaultDate();
+initSelects();
+calcul();
+</script>
+</body>
+</html>

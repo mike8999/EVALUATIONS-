@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Évaluation – Rapport écrit CASIER</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ee;
+    --paper: #fffef9;
+    --border: #2a2a2a;
+    --border-light: #aaa;
+    --header-bg: #1e1e2e;
+    --header-fg: #fff;
+    --section-bg: #2a2a2a;
+    --section-fg: #fff;
+    --accent: #d4a017;
+    --row-alt: #f0ede6;
+    --note-good: #1a6b3a;
+    --note-bad: #b72b2b;
+    --ne-color: #666;
+    --font-main: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    padding: 20px 10px 40px;
+    color: var(--border);
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    max-width: 800px;
+    margin: 0 auto 18px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    padding: 9px 20px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    background: var(--paper);
+    transition: background .15s, color .15s;
+  }
+  .btn:hover { background: var(--border); color: #fff; }
+  .btn-pdf { background: var(--header-bg); color: #fff; border-color: var(--header-bg); }
+  .btn-pdf:hover { background: #3a3a5a; border-color: #3a3a5a; }
+  .btn-reset { border-color: #b72b2b; color: #b72b2b; }
+  .btn-reset:hover { background: #b72b2b; color: #fff; }
+
+  /* ── SHEET ── */
+  .sheet {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 2px solid var(--border);
+    box-shadow: 6px 6px 0 #c8c4bc;
+  }
+
+  /* ── HEADER ── */
+  .sheet-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-bottom: 2px solid var(--border);
+  }
+  .sheet-header .title {
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sheet-header .label-casier {
+    padding: 10px 20px;
+    background: var(--header-bg);
+    color: var(--header-fg);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    border-left: 2px solid var(--border);
+    font-weight: 500;
+  }
+
+  /* ── COMPETENCES LIST ── */
+  .competences-list {
+    padding: 7px 16px;
+    border-bottom: 2px solid var(--border);
+    font-size: 11.5px;
+    line-height: 1.5;
+    font-style: italic;
+    color: #444;
+  }
+
+  /* ── IDENTITY FIELDS ── */
+  .identity-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+  }
+  .identity-field {
+    padding: 7px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-right: 1px solid var(--border-light);
+  }
+  .identity-field:last-child { border-right: none; }
+  .identity-field label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+  }
+  .identity-field input,
+  .identity-field select {
+    font-family: var(--font-main);
+    font-size: 13px;
+    border: none;
+    border-bottom: 1.5px solid var(--border-light);
+    background: transparent;
+    padding: 2px 0;
+    width: 100%;
+    outline: none;
+    transition: border-color .15s;
+    cursor: pointer;
+  }
+  .identity-field input:focus,
+  .identity-field select:focus { border-bottom-color: var(--accent); }
+
+  /* ── TABLE ── */
+  .eval-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .col-header {
+    background: var(--paper);
+    border-bottom: 2px solid var(--border);
+  }
+  .col-header th {
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .col-header th:first-child { text-align: left; width: 55%; }
+  .col-header th.col-note { text-align: center; width: 16%; border-left: 1.5px solid var(--border-light); }
+  .col-header th.col-coef { text-align: center; width: 12%; border-left: 1.5px solid var(--border-light); }
+  .col-header th.col-pts  { text-align: center; width: 17%; border-left: 1.5px solid var(--border-light); }
+
+  .section-row td {
+    background: var(--section-bg);
+    color: var(--section-fg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+  }
+
+  .criterion-row td {
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    border-bottom: 1px solid #e0dbd0;
+    vertical-align: middle;
+  }
+  .criterion-row.alt td { background: var(--row-alt); }
+  .criterion-row td.col-note,
+  .criterion-row td.col-coef,
+  .criterion-row td.col-pts {
+    text-align: center;
+    border-left: 1.5px solid var(--border-light);
+  }
+
+  /* Note select — écran */
+  .note-select {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1.5px solid var(--border-light);
+    background: var(--paper);
+    width: 64px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .note-select.ne  { color: var(--ne-color); font-style: italic; }
+  .note-select.low { color: var(--note-bad); font-weight: 600; }
+  .note-select.high{ color: var(--note-good); font-weight: 600; }
+
+  /* Coef input */
+  .coef-input {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1.5px solid var(--border-light);
+    background: var(--paper);
+    width: 46px;
+    text-align: center;
+    outline: none;
+  }
+  .coef-input:focus { border-color: var(--accent); }
+
+  /* Points cell */
+  .pts-val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #444;
+  }
+  .pts-val.ne-val { color: var(--ne-color); font-style: italic; font-size: 11px; }
+
+  /* ── TOTAL ROW ── */
+  .total-row td {
+    border-top: 3px double var(--border);
+    padding: 10px 14px;
+    vertical-align: middle;
+  }
+  .total-row td:first-child {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .total-row td.col-note,
+  .total-row td.col-coef,
+  .total-row td.col-pts { border-left: 1.5px solid var(--border-light); text-align: center; }
+  #final-score {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--header-bg);
+    transition: color .3s;
+  }
+  #final-max { font-family: var(--font-mono); font-size: 13px; color: #888; margin-top: 1px; }
+  #ne-notice { font-size: 10px; color: var(--ne-color); font-style: italic; display: none; margin-top: 3px; }
+
+  /* ── FOOTER ── */
+  .sheet-footer {
+    border-top: 2px solid var(--border);
+    padding: 7px 16px;
+    font-size: 10px;
+    color: #999;
+    font-family: var(--font-mono);
+    text-align: right;
+  }
+
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 600px) {
+    .sheet-header { grid-template-columns: 1fr; }
+    .sheet-header .label-casier { border-left: none; border-top: 2px solid var(--border); justify-content: center; }
+    .identity-row { grid-template-columns: 1fr; }
+    .identity-field { border-right: none; border-bottom: 1px solid var(--border-light); }
+    .identity-field:last-child { border-bottom: none; }
+  }
+
+  /* ══════════════════════════════════════════════
+     IMPRESSION / PDF  —  tout sur une page A4
+  ══════════════════════════════════════════════ */
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 8mm 8mm 8mm 8mm;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      background: #fff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .toolbar { display: none !important; }
+
+    .sheet {
+      max-width: 100% !important;
+      width: 194mm !important;   /* 210mm - 2×8mm marges */
+      box-shadow: none !important;
+      border: 1.5pt solid #000 !important;
+      margin: 0 auto !important;
+      /* Réduire l'ensemble pour tenir sur 1 page */
+      transform-origin: top center;
+      transform: scale(var(--print-scale, 1));
+    }
+
+    /* Forcer les couleurs de fond à l'impression */
+    .section-row td {
+      background: #2a2a2a !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sheet-header .label-casier {
+      background: #1e1e2e !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .criterion-row.alt td {
+      background: #f0ede6 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Remplacer les selects/inputs par leur valeur texte */
+    select, input[type="number"] { border: none !important; background: transparent !important; }
+    input[type="date"] { border: none !important; background: transparent !important; }
+
+    /* Pas de coupure de page dans le tableau */
+    table { page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button class="btn btn-reset" onclick="resetAll()">Réinitialiser</button>
+  <button class="btn btn-pdf" onclick="exportPDF()">📄 Imprimer / Enregistrer PDF</button>
+</div>
+
+<div class="sheet" id="eval-sheet">
+
+  <div class="sheet-header">
+    <div class="title">Évaluation du rapport écrit</div>
+    <div class="label-casier">CASIER</div>
+  </div>
+
+  <div class="competences-list">
+    Rechercher des solutions techniques · Dimensionner des éléments d'une installation · Modéliser et simuler une installation d'éclairage · Programmer des dispositifs communicants.
+  </div>
+
+  <div class="identity-row">
+    <div class="identity-field">
+      <label>NOM &amp; Prénom</label>
+      <input type="text" id="nom" placeholder="Nom Prénom de l'élève" autocomplete="off">
+    </div>
+    <div class="identity-field">
+      <label>Date</label>
+      <input type="date" id="date">
+    </div>
+    <div class="identity-field" style="min-width:130px">
+      <label>Classe</label>
+      <select id="classe">
+        <option value="1STI2D">1STI2D</option>
+        <option value="1STI2D-G1">1STI2D-G1</option>
+        <option value="1STI2D-G2">1STI2D-G2</option>
+        <option value="TSTI2D-SIN">TSTI2D-SIN</option>
+        <option value="TSTI2D-EE">TSTI2D-EE</option>
+        <option value="TSTI2D-AC">TSTI2D-AC</option>
+      </select>
+    </div>
+  </div>
+
+  <table class="eval-table" id="eval-table">
+    <thead>
+      <tr class="col-header">
+        <th>Compétences évaluées</th>
+        <th class="col-note">/ 4</th>
+        <th class="col-coef">Coef.</th>
+        <th class="col-pts">Points</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td>Note obtenue</td>
+        <td class="col-note" colspan="2">
+          <div id="final-score">–</div>
+          <div id="final-max"></div>
+          <div id="ne-notice">⚠ éléments non évalués exclus</div>
+        </td>
+        <td class="col-pts">
+          <span id="pts-total" style="font-family:var(--font-mono);font-size:11px;color:#888"></span>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="sheet-footer">
+    Généré le <span id="gen-date"></span>
+  </div>
+</div>
+
+<script>
+const GRILLE = [
+  { section: "Analyse du besoin" },
+  { id: "ab1", label: "Le cahier des charges est clairement rappelé", coef: 1 },
+  { id: "ab2", label: "Une organisation d'équipe existe (Trello ou Gantt…)", coef: 2 },
+
+  { section: "Recherche de Solutions" },
+  { id: "rs1", label: "Jusqu'à 3 solutions possibles avec croquis/image/explication sont proposées pour chaque problème à résoudre", coef: 4 },
+  { id: "rs2", label: "Établir une matrice de choix pour chaque solution – choisir une solution", coef: 4 },
+
+  { section: "Concevoir une Solution – Dimensionner – Modéliser" },
+  { id: "cs1", label: "Calcul du besoin en énergie", coef: 5 },
+  { id: "cs2", label: "Dimensionnement du parc photovoltaïque", coef: 5 },
+  { id: "cs3", label: "Dimensionnement du parc de batteries", coef: 5 },
+  { id: "cs4", label: "Dimensionnement du régulateur", coef: 5 },
+  { id: "cs5", label: "Modélisation et simulation de l'éclairage", coef: 5 },
+  { id: "cs6", label: "Algorigramme de l'automatisme", coef: 5 },
+  { id: "cs7", label: "Programme correspondant à l'algorigramme", coef: 5 },
+  { id: "cs8", label: "Schéma de câblage – schéma structurel", coef: 5 },
+
+  { section: "Expérimenter" },
+  { id: "ex1", label: "Câbler, programmer et mettre au point la maquette ou le prototype", coef: 3 },
+  { id: "ex2", label: "Analyser les résultats et valider les exigences du cahier des charges pour chaque solution", coef: 3 },
+
+  { section: "Communication écrite" },
+  { id: "ce1", label: "Diapos commentées, documentées, claires", coef: 2 },
+  { id: "ce2", label: "Compte-rendu structuré respectant un plan", coef: 2 },
+  { id: "ce3", label: "Expression écrite (niveau de langue et orthographe)", coef: 2 },
+];
+
+const NOTE_OPTIONS = ["–", "NE", "0", "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"];
+
+let state = {};
+
+function initState() {
+  GRILLE.forEach(item => {
+    if (item.id) state[item.id] = state[item.id] || { note: "2", coef: item.coef };
+  });
+}
+
+function buildTable() {
+  const tbody = document.getElementById("table-body");
+  tbody.innerHTML = "";
+  let rowIdx = 0;
+
+  GRILLE.forEach(item => {
+    const tr = document.createElement("tr");
+
+    if (item.section) {
+      tr.className = "section-row";
+      tr.innerHTML = `<td colspan="4">${item.section}</td>`;
+    } else {
+      tr.className = "criterion-row" + (rowIdx % 2 === 1 ? " alt" : "");
+      rowIdx++;
+
+      // Libellé
+      const tdL = document.createElement("td");
+      tdL.textContent = item.label;
+      tr.appendChild(tdL);
+
+      // Note
+      const tdN = document.createElement("td");
+      tdN.className = "col-note";
+      const sel = document.createElement("select");
+      sel.className = "note-select";
+      sel.dataset.id = item.id;
+      NOTE_OPTIONS.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt; o.textContent = opt;
+        sel.appendChild(o);
+      });
+      sel.value = state[item.id].note;
+      styleSelect(sel);
+      sel.addEventListener("change", e => {
+        state[item.id].note = e.target.value;
+        styleSelect(sel);
+        recalculate();
+      });
+      tdN.appendChild(sel);
+      tr.appendChild(tdN);
+
+      // Coef
+      const tdC = document.createElement("td");
+      tdC.className = "col-coef";
+      const inp = document.createElement("input");
+      inp.type = "number"; inp.className = "coef-input";
+      inp.min = 0; inp.max = 20; inp.step = 0.5;
+      inp.value = state[item.id].coef;
+      inp.addEventListener("input", e => {
+        state[item.id].coef = parseFloat(e.target.value) || 0;
+        recalculate();
+      });
+      tdC.appendChild(inp);
+      tr.appendChild(tdC);
+
+      // Points
+      const tdP = document.createElement("td");
+      tdP.className = "col-pts";
+      tdP.id = `pts-${item.id}`;
+      tr.appendChild(tdP);
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+function styleSelect(sel) {
+  sel.classList.remove("ne", "low", "high");
+  const v = sel.value;
+  if (v === "NE") sel.classList.add("ne");
+  else if (v !== "–") {
+    const n = parseFloat(v);
+    if (n <= 1) sel.classList.add("low");
+    else if (n >= 3) sel.classList.add("high");
+  }
+}
+
+function recalculate() {
+  let sumPts = 0, sumCoef = 0, sumNE = 0, hasNE = false;
+
+  GRILLE.forEach(item => {
+    if (!item.id) return;
+    const { note, coef } = state[item.id];
+    const cell = document.getElementById(`pts-${item.id}`);
+    if (!cell) return;
+
+    if (note === "–" || note === "NE") {
+      cell.innerHTML = `<span class="pts-val ne-val">${note}</span>`;
+      if (note === "NE") { sumNE += coef; hasNE = true; }
+      sumCoef += coef;
+    } else {
+      const pts = parseFloat(note) * coef;
+      sumPts += pts;
+      sumCoef += coef;
+      cell.innerHTML = `<span class="pts-val">${pts % 1 === 0 ? pts.toFixed(0) : pts.toFixed(2)}</span>`;
+    }
+  });
+
+  const coefEval = sumCoef - sumNE;
+  const maxPts = coefEval * 4;
+  const fs = document.getElementById("final-score");
+  const fm = document.getElementById("final-max");
+  const pt = document.getElementById("pts-total");
+  const ne = document.getElementById("ne-notice");
+
+  if (coefEval === 0) {
+    fs.textContent = "–"; fm.textContent = ""; pt.textContent = "";
+  } else {
+    const n20 = (sumPts / maxPts) * 20;
+    fs.textContent = n20 % 1 === 0 ? n20.toFixed(0) : n20.toFixed(1);
+    fm.textContent = "/ 20";
+    pt.textContent = `${sumPts % 1 === 0 ? sumPts.toFixed(0) : sumPts.toFixed(2)} pts / ${maxPts}`;
+    fs.style.color = n20 < 8 ? "var(--note-bad)" : n20 >= 14 ? "var(--note-good)" : "var(--header-bg)";
+  }
+  ne.style.display = hasNE ? "block" : "none";
+}
+
+function resetAll() {
+  if (!confirm("Réinitialiser toutes les notes ?")) return;
+  GRILLE.forEach(item => {
+    if (item.id) state[item.id] = { note: "2", coef: item.coef };
+  });
+  document.getElementById("nom").value = "";
+  document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("classe").value = "1STI2D";
+  buildTable();
+  recalculate();
+}
+
+// ── EXPORT PDF via window.print() ────────────────────────────────────────────
+function exportPDF() {
+  // Calculer le scale nécessaire pour tenir sur une page A4
+  // Zone utile @96dpi : 194mm → ~733px ; hauteur utile : 281mm → ~1062px
+  const sheet = document.getElementById("eval-sheet");
+  const h = sheet.scrollHeight;
+  const w = sheet.scrollWidth;
+  const availH = 1062; // px équiv. A4 281mm @96dpi
+  const availW = 733;
+  const scale = Math.min(availH / h, availW / w, 1);
+  sheet.style.setProperty("--print-scale", scale.toFixed(4));
+
+  window.print();
+
+  // Nettoyer après impression
+  setTimeout(() => sheet.style.removeProperty("--print-scale"), 2000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  initState();
+  buildTable();
+  recalculate();
+
+  const now = new Date();
+  document.getElementById("gen-date").textContent =
+    now.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  document.getElementById("date").value = now.toISOString().slice(0, 10);
+  document.getElementById("classe").value = "1STI2D";
+});
+</script>
+</body>
+</html>
