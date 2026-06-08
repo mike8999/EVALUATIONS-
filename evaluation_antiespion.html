@@ -420,9 +420,19 @@
 </div><!-- fin page-wrapper -->
 
 <script>
-// ===== Initialisation des selects =====
+// ===== Palette couleurs =====
 const noteOptions = ['NE', '0', '1', '2', '3', '4'];
 
+const NOTE_COLORS = {
+  'NE': { bg: '#c2c2c2', fg: '#555555' },
+  '0':  { bg: '#E3D4D4', fg: '#7a6000' },
+  '1':  { bg: '#D49696', fg: '#2a4a10' },
+  '2':  { bg: '#8ecf60', fg: '#1a3a05' },
+  '3':  { bg: '#5ab830', fg: '#ffffff' },
+  '4':  { bg: '#2e9e00', fg: '#ffffff' },
+};
+
+// ===== Initialisation des selects =====
 function initSelects() {
   document.querySelectorAll('.note-select').forEach(sel => {
     sel.innerHTML = '';
@@ -437,39 +447,40 @@ function initSelects() {
   });
 }
 
+// Applique la couleur sur la cellule ET sur le select
 function updateNote(sel) {
-  const cell = sel.closest('.note-cell');
-  if (sel.value === 'NE') {
-    sel.classList.add('ne');
-    cell.style.background = '#e8e8e8';
-  } else {
-    sel.classList.remove('ne');
-    cell.style.background = '#ffe0e0';
-  }
+  const cell    = sel.closest('.note-cell');
+  const palette = NOTE_COLORS[sel.value] ?? NOTE_COLORS['2'];
+
+  // Cellule conteneur
+  cell.style.background = palette.bg;
+
+  // Select lui-même (visible dans le rendu natif et dans html2canvas)
+  sel.style.background  = palette.bg;
+  sel.style.color       = palette.fg;
+  sel.style.borderColor = 'rgba(0,0,0,0.18)';
+  sel.style.fontWeight  = '700';
 }
 
 // ===== Calcul note =====
 function calcul() {
   const rows = document.querySelectorAll('.critere');
   let totalPoints = 0;
-  let totalCoef = 0;
+  let totalCoef   = 0;
 
   rows.forEach(row => {
-    const sel = row.querySelector('.note-select');
+    const sel       = row.querySelector('.note-select');
     const coefInput = row.querySelector('.coef-input');
     if (!sel || !coefInput) return;
     const note = sel.value;
     const coef = parseFloat(coefInput.value) || 0;
     if (note === 'NE') return;
     totalPoints += parseFloat(note) * coef;
-    totalCoef += coef;
+    totalCoef   += coef;
   });
 
   const affichage = document.getElementById('note-affichee');
-  if (totalCoef === 0) {
-    affichage.textContent = '—';
-    return;
-  }
+  if (totalCoef === 0) { affichage.textContent = '—'; return; }
   const noteSur20 = (totalPoints / totalCoef) * (20 / 4);
   affichage.textContent = Math.round(noteSur20 * 10) / 10;
 }
@@ -487,9 +498,9 @@ function resetNotes() {
 // ===== Date par défaut =====
 function setDefaultDate() {
   const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
   document.getElementById('date-eval').value = `${yyyy}-${mm}-${dd}`;
 }
 
@@ -498,8 +509,6 @@ async function exportPDF() {
   const btn = document.querySelector('.btn-pdf');
   btn.disabled = true;
   btn.textContent = '⏳ Génération...';
-
-  // Masquer la barre d'action pendant la capture
   const actionBar = document.querySelector('.action-bar');
   actionBar.style.display = 'none';
 
@@ -515,37 +524,24 @@ async function exportPDF() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 12;
-    const maxW = pageW - margin * 2;
-    const maxH = pageH - margin * 2;
+    const pageW = 210, pageH = 297, margin = 12;
+    const maxW  = pageW - margin * 2;
+    const maxH  = pageH - margin * 2;
+    const ratio = canvas.height / canvas.width;
 
-    const imgW = canvas.width;
-    const imgH = canvas.height;
-    const ratio = imgH / imgW;
-
-    let finalW = maxW;
-    let finalH = maxW * ratio;
-    if (finalH > maxH) {
-      finalH = maxH;
-      finalW = maxH / ratio;
-    }
+    let finalW = maxW, finalH = maxW * ratio;
+    if (finalH > maxH) { finalH = maxH; finalW = maxH / ratio; }
 
     const offsetX = margin + (maxW - finalW) / 2;
     const offsetY = margin + (maxH - finalH) / 2;
 
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', offsetX, offsetY, finalW, finalH);
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', offsetX, offsetY, finalW, finalH);
 
-    // Nom du fichier
-    const nom = document.getElementById('nom-eleve').value || 'eleve';
+    const nom    = document.getElementById('nom-eleve').value    || 'eleve';
     const prenom = document.getElementById('prenom-eleve').value || '';
-    const date = document.getElementById('date-eval').value || '';
-    const matiere = document.getElementById('matiere-eval').value || '';
-    const filename = `evaluation_${matiere}_${nom}_${prenom}_${date}.pdf`.replace(/\s+/g, '_');
+    const date   = document.getElementById('date-eval').value    || '';
+    pdf.save(`evaluation_PARKING_${nom}_${prenom}_${date}.pdf`.replace(/\s+/g, '_'));
 
-    pdf.save(filename);
   } finally {
     actionBar.style.display = '';
     btn.disabled = false;
