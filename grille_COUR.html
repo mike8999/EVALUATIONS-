@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Évaluation Rapport Écrit – COUR LYCÉE</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c0: #e74c3c;   /* rouge     - insuffisant  */
+  --c1: #e67e22;   /* orange    - insuffisant+ */
+  --c2: #27ae60;   /* vert      - satisfaisant */
+  --c3: #2980b9;   /* bleu      - excellent    */
+  --cNE: #95a5a6;  /* gris      - non évalué   */
+  --cat-bg: #2c3e6b;
+  --border: #bdc3c7;
+  --font: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: #dde1e8;
+  padding: 16px;
+}
+
+.no-print { margin-bottom: 14px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+.btn {
+  padding: 9px 20px; border: none; border-radius: 5px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity .15s;
+}
+.btn:hover { opacity: .82; }
+.btn-pdf   { background: #2c3e6b; color: #fff; }
+.btn-reset { background: #fff; color: #333; border: 1.5px solid #bbb; }
+
+/* ── Sheet ── */
+.sheet {
+  background: #fff;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 18px 14px;
+  border: 1px solid #bbb;
+  box-shadow: 0 3px 18px rgba(0,0,0,.13);
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex; align-items: stretch;
+  border: 2px solid #1a1a2e; margin-bottom: 0;
+}
+.page-header .title-block {
+  flex: 1; padding: 9px 14px;
+  border-right: 2px solid #1a1a2e;
+}
+.page-header .title-block h1 {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: .7px; text-transform: uppercase; color: #1a1a2e;
+}
+.page-header .proj-tag {
+  background: #1a1a2e; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px; font-size: 15px; font-weight: 700;
+  letter-spacing: 2px; min-width: 88px;
+}
+
+/* competences */
+.competences {
+  border: 1px solid var(--border); border-top: none;
+  padding: 5px 13px; font-size: 10.5px; color: #555;
+  font-style: italic; line-height: 1.5; background: #fafbfc;
+  margin-bottom: 8px;
+}
+
+/* ── Info row ── */
+.info-row {
+  display: grid; grid-template-columns: 1fr 130px 150px;
+  border: 1px solid var(--border); margin-bottom: 8px;
+}
+.info-cell { padding: 5px 10px; border-right: 1px solid var(--border); }
+.info-cell:last-child { border-right: none; }
+.info-label {
+  font-size: 8.5px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #999; margin-bottom: 3px;
+}
+.info-input, .info-select {
+  font-family: var(--font); font-size: 12px;
+  border: none; background: transparent; color: #1a1a2e;
+  width: 100%; outline: none;
+}
+.info-input::placeholder { color: #bbb; }
+
+/* ── Main table ── */
+.eval-table {
+  width: 100%; border-collapse: collapse; font-size: 11px;
+}
+.eval-table th {
+  background: #f2f4f8; font-size: 8.5px; font-weight: 700;
+  letter-spacing: .7px; text-transform: uppercase;
+  padding: 5px 6px; border: 1px solid var(--border);
+  color: #666; text-align: center;
+}
+.eval-table th.th-crit { text-align: left; }
+
+/* category header */
+.cat-row td {
+  background: var(--cat-bg); color: #fff;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; padding: 5px 8px;
+  border: 1px solid #3a4f85;
+}
+
+/* criteria row */
+.crit-row td {
+  border: 1px solid var(--border);
+  vertical-align: middle; padding: 4px 6px;
+}
+.crit-row:nth-child(odd)  .td-crit { background: #fff; }
+.crit-row:nth-child(even) .td-crit { background: #f7f8fc; }
+
+.td-crit { line-height: 1.35; color: #222; width: auto; }
+
+/* coef cell */
+.td-coef {
+  text-align: center; width: 46px; background: #eef0f8 !important;
+}
+.coef-input {
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  width: 34px; border: 1px dashed #aab; border-radius: 3px;
+  text-align: center; background: #fff; color: #2c3e6b;
+  padding: 2px 0; outline: none;
+}
+.coef-input:focus { border-color: #2c3e6b; }
+
+/* pts cell */
+.td-pts {
+  text-align: center; width: 50px; background: #e8ebf5 !important;
+  font-weight: 700; font-size: 12px; color: #2c3e6b;
+}
+
+/* ── Level boxes ── */
+.td-levels { width: 340px; padding: 3px 4px !important; }
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 1fr 1fr 44px;
+  gap: 2px;
+  align-items: stretch;
+}
+
+/* NE box */
+.box-ne {
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border); border-radius: 3px;
+  font-size: 9px; font-weight: 700; color: #aaa;
+  cursor: pointer; user-select: none;
+  min-height: 36px; transition: all .15s;
+  background: #f5f5f5;
+}
+.box-ne.active {
+  background: var(--cNE); border-color: var(--cNE); color: #fff;
+}
+
+/* level box (0–3) */
+.box-level {
+  display: flex; flex-direction: column;
+  border: 1.5px solid var(--border); border-radius: 3px;
+  cursor: pointer; user-select: none;
+  overflow: hidden; transition: all .15s;
+  min-height: 36px; background: #fafafa;
+  position: relative;
+}
+.box-level:hover { border-color: #888; filter: brightness(.96); }
+
+.box-level .lvl-num {
+  font-size: 9px; font-weight: 700;
+  padding: 2px 4px 1px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  background: rgba(0,0,0,.06);
+  color: #444; line-height: 1;
+  flex-shrink: 0;
+}
+.box-level .lvl-txt {
+  font-size: 8.5px; line-height: 1.3;
+  padding: 3px 4px;
+  color: #555; flex: 1;
+}
+
+/* Active states per level */
+.box-level.active-0 { background: var(--c0); border-color: var(--c0); }
+.box-level.active-0 .lvl-num { background: rgba(0,0,0,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+.box-level.active-0 .lvl-txt { color: #fff; }
+
+.box-level.active-1 { background: var(--c1); border-color: var(--c1); }
+.box-level.active-1 .lvl-num { background: rgba(0,0,0,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+.box-level.active-1 .lvl-txt { color: #fff; }
+
+.box-level.active-2 { background: var(--c2); border-color: var(--c2); }
+.box-level.active-2 .lvl-num { background: rgba(0,0,0,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+.box-level.active-2 .lvl-txt { color: #fff; }
+
+.box-level.active-3 { background: var(--c3); border-color: var(--c3); }
+.box-level.active-3 .lvl-num { background: rgba(0,0,0,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+.box-level.active-3 .lvl-txt { color: #fff; }
+
+/* ── Total row ── */
+.total-row td {
+  border: 2px solid #1a1a2e; padding: 8px 10px;
+  background: #eef0f8; vertical-align: middle;
+}
+.total-label { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+.total-score-big {
+  font-size: 26px; font-weight: 700; color: #2c3e6b;
+  text-align: center; line-height: 1;
+}
+.total-sub { font-size: 10px; color: #888; text-align: center; }
+.total-pts-detail { font-size: 11px; color: #555; text-align: right; }
+
+/* footer */
+.sheet-footer { text-align: right; font-size: 9.5px; color: #bbb; margin-top: 8px; font-style: italic; }
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; padding: 0; }
+  .no-print { display: none !important; }
+  .sheet { box-shadow: none; border: none; max-width: 100%; padding: 7mm 8mm 5mm; }
+  @page { size: A4 portrait; margin: 0; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  body { padding: 6px; }
+  .sheet { padding: 10px 8px; }
+  .info-row { grid-template-columns: 1fr 1fr; }
+  .info-cell:last-child { grid-column: span 2; border-top: 1px solid var(--border); }
+  .td-levels { width: auto; }
+  .levels-grid { grid-template-columns: 28px 1fr 1fr; grid-template-rows: auto auto; }
+  .box-ne { grid-row: span 2; }
+  .box-level:nth-child(5), .box-level:nth-child(6) { /* 3,4 wrap */ }
+  .td-pts, .td-coef { width: 38px; }
+}
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="btn btn-pdf" onclick="exportPDF()">⬇ Enregistrer PDF</button>
+  <button class="btn btn-reset" onclick="resetForm()">↺ Réinitialiser</button>
+</div>
+
+<div class="sheet" id="grille">
+
+  <div class="page-header">
+    <div class="title-block"><h1>Évaluation du rapport écrit</h1></div>
+    <div class="proj-tag">COUR</div>
+  </div>
+
+  <div class="competences">
+    Rechercher des solutions techniques · Dimensionner des éléments d'une installation · Modéliser et simuler une installation d'éclairage · Programmer des dispositifs communicants.
+  </div>
+
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-label">Nom &amp; Prénom</div>
+      <input class="info-input" id="nomPrenom" type="text" placeholder="Nom Prénom de l'élève" autocomplete="off">
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Date</div>
+      <input class="info-input" id="dateInput" type="date">
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Classe</div>
+      <select class="info-select" id="classeSelect">
+        <option value="1STI2D" selected>1STI2D</option>
+        <option value="1STI2D-G1">1STI2D-G1</option>
+        <option value="1STI2D-G2">1STI2D-G2</option>
+        <option value="TSTI2D">TSTI2D</option>
+        <option value="1SI">1SI</option>
+        <option value="TSI">TSI</option>
+      </select>
+    </div>
+  </div>
+
+  <table class="eval-table">
+    <thead>
+      <tr>
+        <th class="th-crit">Compétences évaluées</th>
+        <th>Niveaux (cliquer pour noter)</th>
+        <th>Coef.</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <div class="sheet-footer" id="footerDate"></div>
+</div>
+
+<script>
+const CRITERIA = [
+  {
+    cat: "Analyse du besoin",
+    items: [
+      {
+        id: 0,
+        text: "Analyser le contexte et les cas d'utilisation et le diagramme des exigences",
+        coef: 2,
+        levels: [
+          "Les contraintes ne sont pas évoquées. Le problème est trop mal identifié",
+          "Des contraintes sont oubliées ou ne sont pas liées à l'EE.",
+          "Quelques contraintes sont extraites ou le problème est mal identifié",
+          "Toutes contraintes sont extraites et le problème est parfaitement identifié"
+        ]
+      },
+      {
+        id: 1,
+        text: "S'organiser en équipe",
+        coef: 2,
+        levels: [
+          "Aucune organisation d'équipe existe",
+          "L'organisation est vague, ambiguë",
+          "L'organisation présentée fait apparaître des incohérences ou est cohérente mais n'a pas été respectée",
+          "L'organisation existe et permet un travail efficace"
+        ]
+      }
+    ]
+  },
+  {
+    cat: "Recherche de solutions",
+    items: [
+      {
+        id: 2,
+        text: "Rechercher des solutions d'allées en lien avec les travaux de JJ Fourier",
+        coef: 2,
+        levels: [
+          "Aucune information collectée",
+          "Les informations collectées sont partiellement justes voire incomplètes",
+          "Les informations collectées sont partielles mais justes",
+          "Les informations collectées sont correctes et synthétiques"
+        ]
+      },
+      {
+        id: 3,
+        text: "Rechercher des solutions de collecte des déchets, de luminaires et d'automatisation",
+        coef: 3,
+        levels: [
+          "Aucune solution possible présentée.",
+          "Les solutions sont peu nombreuses ou hors sujet",
+          "Les solutions sont cohérentes ou incomplètes ou peu argumentées",
+          "Les solutions sont présentées clairement et détaillées"
+        ]
+      },
+      {
+        id: 4,
+        text: "Établir une matrice de choix – choisir une solution",
+        coef: 3,
+        levels: [
+          "Aucune matrice de choix",
+          "Les choix sont mal justifiés : critères mal choisis",
+          "Une matrice est remplie mais les critères sont partiellement cohérents",
+          "Une matrice présente clairement et en toute cohérence les solutions"
+        ]
+      }
+    ]
+  },
+  {
+    cat: "Concevoir une solution – Dimensionner – Modéliser",
+    items: [
+      {
+        id: 5,
+        text: "Recherche de luminaire et d'éclairement",
+        coef: 4,
+        levels: [
+          "Aucun luminaire proposé",
+          "Un luminaire est choisi sans rapport avec le CDC",
+          "Un luminaire est choisi mais ne satisfait pas totalement le CDC",
+          "Un luminaire est choisi conforme aux exigences"
+        ]
+      },
+      {
+        id: 6,
+        text: "Modéliser le parcours avec Dialux",
+        coef: 4,
+        levels: [
+          "Aucun parcours",
+          "Modélisation non conforme au CDC",
+          "Modélisation partiellement conforme",
+          "Parcours parfaitement modélisé, conforme aux prévisions"
+        ]
+      },
+      {
+        id: 7,
+        text: "Simuler la solution d'éclairage",
+        coef: 4,
+        levels: [
+          "Pas de simulation ni de modélisation",
+          "Modélisation ou simulation manquante, non probante",
+          "Modélisation et simulation satisfaisant partiellement le CDC",
+          "Modélisation et simulation effectuées en total accord avec le CDC"
+        ]
+      },
+      {
+        id: 8,
+        text: "Dimensionner le parc photovoltaïque et le parc batterie",
+        coef: 4,
+        levels: [
+          "Pas de proposition",
+          "Les calculs sont absents ou partiels mais une proposition de panneaux et de batteries existe",
+          "Les calculs existent mais sont partiellement inexacts ou sans matériel",
+          "Les calculs proposés utilisent les formules données et sont exacts"
+        ]
+      },
+      {
+        id: 9,
+        text: "Algorigramme de l'automatisme",
+        coef: 4,
+        levels: [
+          "Aucun algorigramme",
+          "L'algorigramme existe mais n'est pas fonctionnel",
+          "L'algorigramme est cohérent mais comporte des erreurs minimes",
+          "L'algorigramme est cohérent et respecte la norme de présentation"
+        ]
+      }
+    ]
+  },
+  {
+    cat: "Expérimenter",
+    items: [
+      {
+        id: 10,
+        text: "Câbler, programmer et mettre au point la maquette ou le prototype",
+        coef: 2,
+        levels: [
+          "Aucune proposition",
+          "Un prototype incomplet existe ou n'est pas fonctionnel",
+          "Un prototype existe mais ne satisfait pas toutes les exigences",
+          "Un prototype existe, parfaitement fonctionnel"
+        ]
+      },
+      {
+        id: 11,
+        text: "Analyser les résultats et valider les exigences du cahier des charges pour chaque solution",
+        coef: 3,
+        levels: [
+          "Aucune analyse et retour au CDC",
+          "Analyse et conclusion partiellement établies ou sans rapport avec le CDC",
+          "Analyse ou conclusion incomplète ou incohérente",
+          "Analyse claire, précise, rappelant le CDC"
+        ]
+      }
+    ]
+  },
+  {
+    cat: "Communication écrite",
+    items: [
+      {
+        id: 12,
+        text: "Diapos commentées, documentées, claires",
+        coef: 2,
+        levels: [
+          "Aucun commentaire, aucun détail",
+          "Commentaires peu détaillés ou trop nombreux, surchargeant inutilement le compte rendu",
+          "Commentaires trop nombreux, mal placés, confus, partiellement inutiles ou manquants",
+          "Commentaires utiles à la compréhension et judicieusement placés"
+        ]
+      },
+      {
+        id: 13,
+        text: "Compte-rendu structuré respectant un plan",
+        coef: 2,
+        levels: [
+          "Aucun plan perceptible, aucun fil conducteur",
+          "Une structure de plan existe mais difficile à percevoir (titres absents)",
+          "Un plan existe, titré, mais présente un défaut d'enchaînement logique",
+          "Le plan permet une lecture aisée et logique du travail accompli"
+        ]
+      },
+      {
+        id: 14,
+        text: "Expression écrite (niveau de langue et orthographe)",
+        coef: 2,
+        levels: [
+          "Fautes et expressions mal choisies, familières, trop fréquentes",
+          "Expression familière et quelques fautes",
+          "Expression correcte mais comportant des fautes assez nombreuses",
+          "Expression soignée, sobre, ne comportant que très peu de fautes"
+        ]
+      }
+    ]
+  }
+];
+
+// State: selected level per criterion (-1 = NE, 0-3 = note)
+const state = {};
+CRITERIA.forEach(cat => cat.items.forEach(c => { state[c.id] = 2; }));
+
+// ── Build table ──────────────────────────────────────────────────────
+function buildTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  CRITERIA.forEach(catObj => {
+    // Category row
+    const catTr = document.createElement('tr');
+    catTr.className = 'cat-row';
+    catTr.innerHTML = `<td colspan="4">${catObj.cat}</td>`;
+    tbody.appendChild(catTr);
+
+    catObj.items.forEach(crit => {
+      const tr = document.createElement('tr');
+      tr.className = 'crit-row';
+
+      // Build level boxes
+      let boxesHTML = `<div class="levels-grid">`;
+
+      // NE box
+      boxesHTML += `<div class="box-ne ${state[crit.id] === -1 ? 'active' : ''}"
+                      onclick="selectLevel(${crit.id}, -1)">NE</div>`;
+
+      // Level 0–3
+      for (let lvl = 0; lvl < 4; lvl++) {
+        const isActive = state[crit.id] === lvl;
+        boxesHTML += `
+          <div class="box-level ${isActive ? 'active-'+lvl : ''}"
+               onclick="selectLevel(${crit.id}, ${lvl})">
+            <div class="lvl-num">${lvl}</div>
+            <div class="lvl-txt">${crit.levels[lvl]}</div>
+          </div>`;
+      }
+      boxesHTML += `</div>`;
+
+      tr.innerHTML = `
+        <td class="td-crit">${crit.text}</td>
+        <td class="td-levels">${boxesHTML}</td>
+        <td class="td-coef">
+          <input class="coef-input" id="coef_${crit.id}" type="number"
+                 min="0" max="20" step="1" value="${crit.coef}"
+                 oninput="recalc()">
+        </td>
+        <td class="td-pts" id="pts_${crit.id}">–</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+
+  // Total row
+  const totalTr = document.createElement('tr');
+  totalTr.className = 'total-row';
+  totalTr.innerHTML = `
+    <td colspan="2"><span class="total-label">Note obtenue</span></td>
+    <td style="text-align:center">
+      <div class="total-score-big" id="totalScore">–</div>
+      <div class="total-sub">/ 20</div>
+    </td>
+    <td>
+      <div class="total-pts-detail" id="totalPts">– pts</div>
+    </td>
+  `;
+  tbody.appendChild(totalTr);
+  recalc();
+}
+
+// ── Select a level ───────────────────────────────────────────────────
+function selectLevel(id, lvl) {
+  state[id] = lvl;
+
+  // Update NE box
+  const neBox = document.querySelector(`.box-ne[onclick="selectLevel(${id}, -1)"]`);
+  if (neBox) neBox.classList.toggle('active', lvl === -1);
+
+  // Update level boxes
+  for (let l = 0; l < 4; l++) {
+    // find box by its onclick attribute
+    const boxes = document.querySelectorAll(`.box-level[onclick="selectLevel(${id}, ${l})"]`);
+    boxes.forEach(box => {
+      box.className = 'box-level' + (lvl === l ? ' active-'+l : '');
+    });
+  }
+  recalc();
+}
+
+// ── Recalculate ──────────────────────────────────────────────────────
+function recalc() {
+  let totalRaw = 0, totalCoef = 0;
+
+  CRITERIA.forEach(catObj => {
+    catObj.items.forEach(crit => {
+      const ptsEl = document.getElementById(`pts_${crit.id}`);
+      const coefEl = document.getElementById(`coef_${crit.id}`);
+      if (!ptsEl || !coefEl) return;
+
+      const coef = parseFloat(coefEl.value) || 0;
+      const note = state[crit.id];
+
+      if (note === -1) {
+        ptsEl.textContent = 'NE';
+        ptsEl.style.color = '#aaa';
+        return;
+      }
+
+      const pts = note * coef;
+      ptsEl.textContent = pts;
+      ptsEl.style.color = '';
+      totalRaw  += pts;
+      totalCoef += coef;
+    });
+  });
+
+  const scoreEl = document.getElementById('totalScore');
+  const ptsEl   = document.getElementById('totalPts');
+
+  if (totalCoef === 0) {
+    scoreEl.textContent = '–';
+    ptsEl.textContent   = '– pts';
+    return;
+  }
+
+  const maxPts = totalCoef * 3;
+  const note20 = Math.round((20 / 3) * (totalRaw / totalCoef) * 10) / 10;
+  scoreEl.textContent = note20.toFixed(1);
+  ptsEl.textContent   = `${totalRaw} pts / ${maxPts}`;
+}
+
+// ── Reset ────────────────────────────────────────────────────────────
+function resetForm() {
+  CRITERIA.forEach(catObj => {
+    catObj.items.forEach(crit => {
+      state[crit.id] = 2;
+      document.getElementById(`coef_${crit.id}`).value = crit.coef;
+    });
+  });
+  document.getElementById('nomPrenom').value = '';
+  document.getElementById('classeSelect').value = '1STI2D';
+  setToday();
+  buildTable(); // rebuild to reset visual state
+}
+
+// ── Date ─────────────────────────────────────────────────────────────
+function setToday() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth()+1).padStart(2,'0');
+  const dd   = String(d.getDate()).padStart(2,'0');
+  document.getElementById('dateInput').value = `${yyyy}-${mm}-${dd}`;
+  const opts = { day:'2-digit', month:'long', year:'numeric' };
+  document.getElementById('footerDate').textContent =
+    'Généré le ' + d.toLocaleDateString('fr-FR', opts);
+}
+
+// ── PDF export ────────────────────────────────────────────────────────
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  document.querySelector('.no-print').style.display = 'none';
+
+  const sheet = document.getElementById('grille');
+  const canvas = await html2canvas(sheet, {
+    scale: 2, useCORS: true, logging: false, backgroundColor: '#fff'
+  });
+
+  document.querySelector('.no-print').style.display = '';
+
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const pgW = 210, pgH = 297, mg = 7;
+  const useW = pgW - 2*mg, useH = pgH - 2*mg;
+  const ratio = canvas.width / canvas.height;
+  let iW = useW, iH = iW / ratio;
+  if (iH > useH) { iH = useH; iW = iH * ratio; }
+  pdf.addImage(imgData, 'JPEG', mg + (useW-iW)/2, mg, iW, iH);
+
+  const nom    = document.getElementById('nomPrenom').value.trim().replace(/\s+/g,'_') || 'eleve';
+  const classe = document.getElementById('classeSelect').value;
+  const date   = document.getElementById('dateInput').value || 'date';
+  pdf.save(`grille_COUR_${nom}_${classe}_${date}.pdf`);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+buildTable();
+setToday();
+</script>
+</body>
+</html>
